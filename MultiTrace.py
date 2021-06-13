@@ -188,6 +188,10 @@ def Create_Layer_Topology(dst, maxTTL, packets, timeout, drop_limit):
                     except socket.error:
                         #Keep trying to retrieve until timeout
                         continue
+                
+                #Raise an exception if the packet drop limit is exceeded
+                if drops >= drop_limit:
+                    raise ExcessivePacketDropError(dst)
             
             #Add address dictionary to layer topology list
             layer_topology.append(address_dict)
@@ -199,10 +203,6 @@ def Create_Layer_Topology(dst, maxTTL, packets, timeout, drop_limit):
             #Raise an exception if the address dictionary is empty
             if len(address_dict) == 0:
                 raise HostUnreachableError(dst)
-
-            #Raise an exception if the packet drop limit is exceeded
-            if drops >= drop_limit:
-                raise ExcessivePacketDropError(dst)
 
             #Increment the TTL value
             TTL += 1
@@ -419,11 +419,11 @@ def MultiTrace(dst_alias, maxTTL, packets, timeout, drop_limit):
         return
     
     except HostUnreachableError as err:
-        print("Error: Host %s is unreachable.", err.dst)
+        print("Error: Host %s is unreachable." %err.dst)
         return
     
     except ExcessivePacketDropError as err:
-        print("Error: Too many packets are dropped enroute to Host %s.", err.dst)
+        print("Error: Too many packets are dropped enroute to Host %s." %err.dst)
         return
 
     except error as error_type:
