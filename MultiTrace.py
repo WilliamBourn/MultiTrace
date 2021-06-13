@@ -352,15 +352,16 @@ def Pathfind(src, dst, forwarding_set):
                     path_set.append(forwarding_pair)
                 
                 #Recursively call the function using the high transitions as the source address and obtain their path sets
-                addr_path_set = Pathfind(forwarding_pair[1], dst, forwarding_set[1:len(forwarding_set)])
-                
-                #Add path source to front of all paths in recursed path set
-                for recursed_path in addr_path_set:
-                    path = [src]
-                    path.extend(recursed_path)
+                else:
+                  addr_path_set = Pathfind(forwarding_pair[1], dst, forwarding_set[1:len(forwarding_set)])
 
-                    #Add path to path set
-                    path_set.append(path)
+                  #Add path source to front of all paths in recursed path set
+                  for recursed_path in addr_path_set:
+                      path = [src]
+                      path.extend(recursed_path)
+
+                      #Add path to path set
+                      path_set.append(path)
         
         #Return the path set
         return path_set
