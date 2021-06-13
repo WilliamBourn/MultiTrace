@@ -67,6 +67,7 @@ args = parser.parse_args()
 #Define port and protocol numbers for ICMP
 ICMP_PORT = 7
 ICMP_PROTOCOL = socket.getprotobyname('ICMP')
+UDP_PROTOCOL = socket.getprotobyname('UDP')
 
 #----------------------------------------------------------------------------------
 #   Classes
@@ -129,7 +130,7 @@ def Create_Layer_Topology(dst, maxTTL, packets, timeout, drop_limit):
     try:
         
         #Initialize sending and receiving sockets
-        send_socket = socket.socket(type = socket.SOCK_RAW, proto = ICMP_PROTOCOL)
+        send_socket = socket.socket(type = socket.SOCK_DGRAM, proto = UDP_PROTOCOL)
         recv_socket = socket.socket(type = socket.SOCK_RAW, proto = ICMP_PROTOCOL)
 
         #Bind receiving socket to the ICMP port
@@ -169,14 +170,16 @@ def Create_Layer_Topology(dst, maxTTL, packets, timeout, drop_limit):
                     try:
                         
                         #Receive ICMP packet
-                        data, address = recv_socket.recvfrom(512)
+                        data, (address, add) = recv_socket.recvfrom(512)
 
-                        #Add address to dictionary if it is already in it
+                        #Increment dictionary for address
                         if address in address_dict:
-                            address_dict[address] = 1
-                        #Otherwise increment value of key by 1
-                        else:
                             address_dict[address] += 1
+                        #Add address to dictionary if it doesn't already exist
+                        else:
+                            address_dict[address] = 1
+                        break
+
 
                     #Executes when the receiving port times out
                     except socket.timeout:
@@ -260,7 +263,7 @@ def Create_Forwarding_Pair_Set(dst, maxTTL, packets, timeout, drop_limit):
         layer_topology = Create_Layer_Topology(dst, maxTTL, packets, timeout, drop_limit)
 
         #Create the forwarding set array
-        forwarding_set = [len(layer_topology) -1]
+        forwarding_set = []
 
         #Iterate through the layers in descending order
         for transition in range(len(layer_topology) - 2,-1,-1):
@@ -353,15 +356,15 @@ def Pathfind(src, dst, forwarding_set):
                 
                 #Recursively call the function using the high transitions as the source address and obtain their path sets
                 else:
-                  addr_path_set = Pathfind(forwarding_pair[1], dst, forwarding_set[1:len(forwarding_set)])
+                    addr_path_set = Pathfind(forwarding_pair[1], dst, forwarding_set[1:len(forwarding_set)])
+                    
+                    #Add path source to front of all paths in recursed path set
+                    for recursed_path in addr_path_set:
+                        path = [src]
+                        path.extend(recursed_path)
 
-                  #Add path source to front of all paths in recursed path set
-                  for recursed_path in addr_path_set:
-                      path = [src]
-                      path.extend(recursed_path)
-
-                      #Add path to path set
-                      path_set.append(path)
+                        #Add path to path set
+                        path_set.append(path)
         
         #Return the path set
         return path_set
