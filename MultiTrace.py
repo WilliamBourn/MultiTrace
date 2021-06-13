@@ -308,7 +308,7 @@ def Create_Forwarding_Pair_Set(dst, maxTTL, packets, timeout, drop_limit):
                     transition_forwarding.extend(recursed_transition_forwarding)
             
             #Add the transition forwarding pair list to the forwarding pair set
-            forwarding_set.insert(transition, transition_forwarding)
+            forwarding_set.insert(0, transition_forwarding)
 
         #Return the forwarding set
         return forwarding_set
